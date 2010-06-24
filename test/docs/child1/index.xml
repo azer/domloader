@@ -1,0 +1,7 @@
+<widget name='Child1' version='1.0'>
+   <dependencies>
+     <module src='foo.js' />
+     <stylesheet src='foo.css' />
+     <widget src="../child3.xml" />
+  </dependencies>
+</widget>
