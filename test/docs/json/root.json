@@ -1,0 +1,44 @@
+{
+  "namespace":{ "foobar":{  }, "test":[1,2,3] },
+  "dependencies":[
+    { 
+      "type":"object", 
+      "name":"objdp1", 
+      "src":"objdp1.js",
+      "properties":[
+        { "name":"version", "match":"1\\.0rc\\d*" },
+        { "name":"foobar" }
+      ]
+    },
+    { 
+      "type":"object", 
+      "name":"objdp2", 
+      "src":"objdp2.js",
+      "properties":[
+        { "name":"version", "match":"1\\.0rc\\d*" },
+        { "name":"foobar", "match":"\\w+" }
+      ]
+    },
+    { 
+      "type":"object", 
+      "name":"objdp3", 
+      "src":"objdp3.js"
+    },
+    { 
+      "type":"module", 
+      "src":"foo.js"
+    },
+    { 
+      "type":"stylesheet", 
+      "src":"foo.css"
+    },
+    { 
+      "type":"index", 
+      "src":"child1/index.json"
+    },
+    { 
+      "type":"application", 
+      "src":"child2/index.json"
+    }
+  ] 
+}
