@@ -148,10 +148,11 @@
     parentObject = parentObject || globals;
 
     while( childName = names[0] ){
-      if( ! parentObject.hasOwnProperty( childName ) ) break;
+      if( ! ( childName in parentObject ) ) break;
       parentObject = parentObject[ childName ];
       names.splice(0,1);
     };
+
     return { 'parentObject':parentObject, 'childrenNames':names };
   }; 
 
@@ -396,7 +397,6 @@
 
   ObjectDp.prototype.refreshState = function(){
     var nres = resolveNSPath( this.name ), loaded = nres.childrenNames.length == 0;
-
     for(var i = -1, len=this.properties.length; ++i < len && loaded;){
       var prop = this.properties[i];
       loaded = nres.parentObject.hasOwnProperty(prop.name) && ( !prop.match || prop.match.test(nres.parentObject[prop.name]) );

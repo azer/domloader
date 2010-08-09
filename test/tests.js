@@ -1,4 +1,4 @@
-var wd = "http://y530/projects/domloader/test";
+var wd = "http://sl510/projects/domloader/test";
 
 var rnd = function(){
   return Math.floor( Math.random()*1000 );
@@ -6,6 +6,7 @@ var rnd = function(){
 
 var test_objectdp = function(test){
   var odp = new domloader.ObjectDp();
+
   compare( odp.state, domloader.UNINITIALIZED );
 
   odp.name = 'NONEXISTENT';
