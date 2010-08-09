@@ -4,7 +4,7 @@
     <html>
       <head>
         <meta http-equiv="content-type" content="text/html; charset=utf-8" />
-        <title>Test: <xsl:value-of select='test/@name' /></title>
+        <title>Tests of <xsl:value-of select='test/@name' /></title>
         <script type="text/javascript" charset="utf-8"><![CDATA[
           (function(exports){
             

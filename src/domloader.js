@@ -43,7 +43,7 @@
    */
   var includeScript = function(url,callback,errback){
     var el = createElement('script');
-    el.setAttribute('src',url+'?'+Number(new Date()));
+    el.setAttribute('src',url);
     el.setAttribute('type','text/javascript');
     //el.setAttribute('async',true);
     el.onload = el.onreadystatechange = function(){
@@ -126,6 +126,32 @@
   var remove = exports.remove = function(list,index){
     return index == -1 && list || list.slice(0,index).concat( list.slice(index+1) );
   }
+
+  /**
+   * Take a string formatted namespace path and return latest object in the path which is existing and a list including names of the nonexistent ones in given order. 
+   *
+   * Usage Examples:
+   *    >>> window.foo
+   *    { 'foo':314 }
+   *    >>> domloader.resolveNSPath( 'foo.bar' );
+   *    { 'parentObject':{ 'foo':314 }, 'childrenNames':['bar'] }
+   *    >>> window.foo.bar = { 'bar':156 };
+   *    >>> domloader.resolveNSPath( 'foo.bar.baz.qux.quux.corge.grault' );
+   *    { 'parentObject':{ 'bar':156 }, 'childrenNames':['baz','qux','quux','corge','grault'] }
+   */
+  var resolveNSPath = exports.resolveNSPath = function(nspath,parentObject){
+    var names = nspath && nspath.split('.') || [];
+    var childName = null;
+
+    parentObject = parentObject || globals;
+
+    while( childName = names[0] ){
+      if( ! parentObject.hasOwnProperty( childName ) ) break;
+      parentObject = parentObject[ childName ];
+      names.splice(0,1);
+    };
+    return { 'parentObject':parentObject, 'childrenNames':names };
+  }; 
 
   /**
    * Represents observable objects which can have many subscribers in different subjects and have a property named "callbacks", storing observation subjects.
@@ -220,8 +246,22 @@
   };
 
   Index.prototype.setNS = function(){
-    for(var name in this.ns){
-      !( name in globals ) && ( globals[name] = this.ns[name] );
+    for(var path in this.ns){
+      
+      var res = resolveNSPath(path),
+        parentObject = res.parentObject,
+        key = null;
+
+      while( key = res.childrenNames[0] ){
+
+        if( res.childrenNames.length == 1 ){
+          parentObject[ key ] = this.ns[ path ];
+          break;
+        }
+        
+        parentObject = parentObject[ key ] = {};
+        res.childrenNames.splice(0,1);
+      }
     }
   };
 

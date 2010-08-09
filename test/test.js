@@ -1,5 +1,9 @@
 var wd = "http://y530/projects/domloader/test";
 
+var rnd = function(){
+  return Math.floor( Math.random()*1000 );
+};
+
 var test_api = function(test){
 
  // compare( domloader.Dependency.prototype.__proto__, domloader.Observable.prototype );
@@ -85,10 +89,43 @@ var test_ind_load_err = function(test){
 }
 
 var test_ind_ns = function(test){
+
+  var keys = [];
+  for(var i = -1; ++i < 2; ) keys[i] = 'test_ind_ns'+rnd();
+
   var ind = new domloader.Index();
-  ind.ns = { "foobar":314 };
+  ind.ns = {};
+  ind.ns[ keys[0] ] = 314;
+  ind.ns[ keys[1] ] = 159;
+
   ind.setNS();
-  compare(window.foobar, 314);
+  compare(window[ keys[0] ], 314);
+  compare(window[ keys[1] ], 159);
+  test.callback();
+}
+
+var test_ind_ns_res = function(test){
+  var keys = [];
+  for(var i = -1; ++i < 5; ) keys[i] = 'test_ind_ns_res'+rnd();
+
+  window[ keys[0] ] = { 'foo':314 };
+  window[ keys[0] ][ keys[1] ] = { 'bar':159 };
+  window[ keys[0] ][ keys[1] ][ keys[2] ] = { 'baz':265 };
+
+  var ind = new domloader.Index();
+  ind.ns = {};
+  ind.ns[ keys.slice(0,4).join('.') ] = 358;
+  ind.ns[ keys[4] ] = 979;
+
+  ind.setNS();
+
+  compare( window[ keys[0] ].foo, 314  );
+  compare( window[ keys[0] ][ keys[1] ].bar, 159 );
+  compare( window[ keys[0] ][ keys[1] ][ keys[2] ].baz, 265 );
+
+  compare( window[ keys[0] ][ keys[1] ][ keys[2] ][ keys[3] ], 358 );
+  compare( window[ keys[4] ], 979 );
+
   test.callback();
 }
 
