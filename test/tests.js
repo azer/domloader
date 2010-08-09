@@ -4,6 +4,63 @@ var rnd = function(){
   return Math.floor( Math.random()*1000 );
 };
 
+var test_objectdp = function(test){
+  var odp = new domloader.ObjectDp();
+  compare( odp.state, domloader.UNINITIALIZED );
+
+  odp.name = 'NONEXISTENT';
+  odp.refreshState();
+  compare( odp.state, domloader.UNINITIALIZED );
+
+  odp.name = 'domloader';
+  odp.refreshState();
+  compare( odp.state, domloader.LOAD );
+
+  odp.name = 'domloader.nonexistent';
+  odp.refreshState();
+  compare( odp.state, domloader.UNINITIALIZED );
+
+  odp.name = 'domloader.Dependency';
+  odp.refreshState();
+  compare( odp.state, domloader.LOAD );
+
+  odp.name = 'domloader.Dependency.prototype.load';
+  odp.refreshState();
+  compare( odp.state, domloader.LOAD );
+
+  odp.name = 'NONEXISTENT';
+  odp.properties = [{ 'name':'nonexistent' }];
+  odp.refreshState();
+  compare( odp.state, domloader.UNINITIALIZED );
+
+  odp.name = 'NONEXISTENT';
+  odp.properties = [{ 'name':'nonexistent', 'match':/foobar/ }];
+  odp.refreshState();
+  compare( odp.state, domloader.UNINITIALIZED );
+
+  odp.name = 'domloader';
+  odp.properties = [{ 'name':'nonexistent' }];
+  odp.refreshState();
+  compare( odp.state, domloader.UNINITIALIZED );
+
+  odp.name = 'domloader';
+  odp.properties = [{ 'name':'version', 'match':/foobar/ }];
+  odp.refreshState();
+  compare( odp.state, domloader.UNINITIALIZED );
+
+  odp.name = 'domloader';
+  odp.properties = [{ 'name':'version', 'match':/1.0/ },{ 'name':'foobar' }];
+  odp.refreshState();
+  compare( odp.state, domloader.UNINITIALIZED );
+
+  odp.name = 'domloader';
+  odp.properties = [{ 'name':'version', 'match':/1.[0-9]/ }];
+  odp.refreshState();
+  compare( odp.state, domloader.LOAD );
+
+  test.callback();
+};
+
 var test_api = function(test){
 
  // compare( domloader.Dependency.prototype.__proto__, domloader.Observable.prototype );
@@ -143,14 +200,14 @@ var test_json_import = function(test){
       compare( ind.dependencies[0].name, "objdp1" );
       compare( ind.dependencies[0].properties.length, 2 );
       compare( ind.dependencies[0].properties[0].name, 'version' );
-      compare( ind.dependencies[0].properties[0].match, '1\\.0rc\\d*' );
+      compare( ind.dependencies[0].properties[0].match.source, '1\\.0rc\\d*' );
       compare( ind.dependencies[0].properties[1].name, 'foobar' );
       compare( ind.dependencies[1].src, "docs/json/objdp2.js" );
       compare( ind.dependencies[1].name, "objdp2" );
       compare( ind.dependencies[1].properties[0].name, 'version' );
-      compare( ind.dependencies[1].properties[0].match, '1\\.0rc\\d*' );
+      compare( ind.dependencies[1].properties[0].match.source, '1\\.0rc\\d*' );
       compare( ind.dependencies[1].properties[1].name, 'foobar' );
-      compare( ind.dependencies[1].properties[1].match, '\\w+' );
+      compare( ind.dependencies[1].properties[1].match.source, '\\w+' );
       compare( ind.dependencies[2].constructor, domloader.ObjectDp );
       compare( ind.dependencies[2].src, "docs/json/objdp3.js" );
       compare( ind.dependencies[2].name, "objdp3" );
@@ -197,14 +254,14 @@ var test_xml_import = function(test){
       compare( ind.dependencies[0].name, "objdp1" );
       compare( ind.dependencies[0].properties.length, 2 );
       compare( ind.dependencies[0].properties[0].name, 'version' );
-      compare( ind.dependencies[0].properties[0].match, '1\\.0rc\\d*' );
+      compare( ind.dependencies[0].properties[0].match.source, '1\\.0rc\\d*' );
       compare( ind.dependencies[0].properties[1].name, 'foobar' );
       compare( ind.dependencies[1].src, "docs/xml/objdp2.js" );
       compare( ind.dependencies[1].name, "objdp2" );
       compare( ind.dependencies[1].properties[0].name, 'version' );
-      compare( ind.dependencies[1].properties[0].match, '1\\.0rc\\d*' );
+      compare( ind.dependencies[1].properties[0].match.source, '1\\.0rc\\d*' );
       compare( ind.dependencies[1].properties[1].name, 'foobar' );
-      compare( ind.dependencies[1].properties[1].match, '\\w+' );
+      compare( ind.dependencies[1].properties[1].match.source, '\\w+' );
       compare( ind.dependencies[2].constructor, domloader.ObjectDp );
       compare( ind.dependencies[2].src, "docs/xml/objdp3.js" );
       compare( ind.dependencies[2].name, "objdp3" );

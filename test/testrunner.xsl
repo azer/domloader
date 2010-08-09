@@ -10,7 +10,7 @@
             
             var trident = /msie|trident/i.test(navigator.userAgent);
 
-            var cases = exports.cases = null;
+            var tests = exports.tests = null;
             var recordCreationCounter = exports.recordCreationCounter = 0;
             var scripts = exports.scripts = [];
 
@@ -41,7 +41,7 @@
 
             var clear = exports.clear = function(){
               status('Clearing UI');
-              $('info-case').innerHTML=cases.length;
+              $('info-case').innerHTML=tests.length;
               $('info-time').innerHTML='0.0';
               $('monitor').innerHTML = '';
               progress(0);
@@ -66,15 +66,15 @@
               req.send(null);
             }
 
-            var findCases = exports.findCases = function(){
-              status('Looking for test cases...');
-              cases = [];
+            var findTests = exports.findTests = function(){
+              status('Searching tests in global namespace...');
+              tests = [];
               for(var key in window){
                 if( /^test_/.test( key ) && typeof window[key] == "function" ){ 
                   var fn = window[key];
                   fn.name = key;
                   fn.fname = key;
-                  cases.push( fn );
+                  tests.push( fn );
                 }
               }
 
@@ -82,16 +82,16 @@
                 for(var i=-1,len=scripts.length; ++i<len;){
                   var pattern = /(?:var|function)\s+(test_[\w$_-]+)/g;
                   while( match = pattern.exec(sources[i]) ){
-                    var name = match[1], value=window[name], ind = index(cases,value);
+                    var name = match[1], value=window[name], ind = index(tests,value);
                     if( name in window && typeof value=="function" && ind==-1 ){
                       value.name = name;
-                      cases.push(window[name]);
+                      tests.push(window[name]);
                     }
                   }
                 }
               }
 
-              return cases;
+              return tests;
             }
 
             var init = exports.init = function(){
@@ -183,14 +183,14 @@
               var container = put('<div style="clear:both"></div>','testrunner-result');
               var statusline = container.childNodes[0];
               var time = 0;  
-              var uncompleted = cases.slice(0);
+              var uncompleted = tests.slice(0);
 
               progress(0);
 
-              for(var i=-1,len=cases.length; ++i<len;){
+              for(var i=-1,len=tests.length; ++i<len;){
                 status('Running tests('+(len-uncompleted.length)+','+len+')');
                 
-                test(cases[i],function(result){
+                test(tests[i],function(result){
                   status('Running tests('+(len-uncompleted.length+1)+','+len+')');
                   var ind = index(uncompleted,result.test); 
                   if( ind == -1 ) return;
@@ -237,7 +237,7 @@
 
             var set = exports.set = function(){
               status('Setting Tests...');
-              findCases();
+              findTests();
               clear();
               log( navigator.userAgent );
               status('Ready');
@@ -322,7 +322,7 @@
                   </label>
                 </li>
                 <li>
-                  Case(s): <label id='testrunner-info-case'>0</label>
+                  Tests: <label id='testrunner-info-case'>0</label>
                 </li>
                 <li>
                   Time: <label id='testrunner-info-time'>0.0</label>

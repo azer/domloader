@@ -6,6 +6,8 @@
  */
 (function( exports, globals, dom, undefined ){
 
+  var version = exports.version = '1.0';
+
   /**
    * State Objects
    */
@@ -311,7 +313,19 @@
                 dp.callbacks.error.push( self.getEmitter("error") );
                 dp.src = self.wd+'/'+el['src'];
                 dp.name = el['name'];
-                dp.properties = el['properties'];
+                dp.properties = [];
+
+                if(el['properties']){
+                  for(var t = -1, tlen=el['properties'].length; ++t < tlen; ){
+                    var prop = el.properties[t];
+                    
+                    dp.properties.push({
+                      'name':prop.name,
+                      'match':new RegExp(prop.match)
+                    });
+                  };
+                }
+
                 break;
               case "widget":
               case "application":
@@ -380,16 +394,25 @@
 
   extend( ObjectDp, Dependency );
 
-  ObjectDp.prototype.load = function(){
-    var loadEmitter = this.getEmitter('load'), errorEmitter = this.getEmitter('error');
-    var loaded = globals[this.name];
+  ObjectDp.prototype.refreshState = function(){
+    var nres = resolveNSPath( this.name ), loaded = nres.childrenNames.length == 0;
 
     for(var i = -1, len=this.properties.length; ++i < len && loaded;){
       var prop = this.properties[i];
-      loaded = prop.name in globals[this.name] && ( !prop.match || ( new RegExp(prop.match) ).test(globals[this.name][prop.name]) );
+      loaded = nres.parentObject.hasOwnProperty(prop.name) && ( !prop.match || prop.match.test(nres.parentObject[prop.name]) );
     };
 
-    !loaded ? includeScript(this.src,loadEmitter,errorEmitter) : loadEmitter();
+    this.state = loaded && LOAD || UNINITIALIZED; 
+  }
+
+  ObjectDp.prototype.load = function(){
+    this.refreshState();
+    if( this.state != LOAD ){
+      var loadEmitter = this.getEmitter('load'), errorEmitter = this.getEmitter('error');
+      includeScript(this.src,loadEmitter,errorEmitter);
+    } else {
+      loadEmitter();
+    }
   }
 
   /**
@@ -469,7 +492,7 @@
                 var el = properties[t];
                 var prop = {};
                 prop.name = el.getAttribute("name");
-                el.getAttribute("match") && ( prop.match = el.getAttribute("match") );
+                el.getAttribute("match") && ( prop.match = new RegExp(el.getAttribute("match")) );
                 dp.properties.push(prop);
               };
 

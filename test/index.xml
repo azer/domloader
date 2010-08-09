@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <?xml-stylesheet type="text/xsl" href="testrunner.xsl"?>
-<test name='DOMLoader' path='test.js'>
+<test name='DOMLoader' path='tests.js'>
   <dependency path='../src/domloader.js' />
 </test>
