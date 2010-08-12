@@ -271,6 +271,7 @@ var test_xml_import = function(test){
       compare( ind.dependencies[4].constructor, domloader.Stylesheet );
       compare( ind.dependencies[4].src, "docs/xml/foo.css" );
       compare( ind.dependencies[5].constructor, domloader.XMLIndex );
+      assert( ind.dependencies[5].ns.child1_ns );
       compare( ind.dependencies[5].dependencies.length, 3 );
       compare( ind.dependencies[5].dependencies[0].constructor, domloader.Module );
       compare( ind.dependencies[5].dependencies[0].src, 'docs/xml/child1/foo.js' );
@@ -298,8 +299,14 @@ var test_xml_import = function(test){
 var test_loadfn = function(test){
   window["docs/xml/child1/foo.js"] = null;
   domloader.load('docs/xml/child1/index.xml',function(){
-    assert( window["docs/xml/child1/foo.js"] );
-    test.callback();
+    try {
+      assert( window["docs/xml/child1/foo.js"] );
+      assert( window["child1_ns"] );
+      test.callback();
+    } catch(exc){
+      test.error = exc;
+      test.callback();
+    }
   },function(excInfo){ 
     test.error = excInfo;
     test.callback();

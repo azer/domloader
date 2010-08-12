@@ -84,6 +84,7 @@
     var ind = new FORMAT_CLS_DICT[format];
 
     ind.callbacks["import"].push(function(){
+      ind.setNS();
       ind.load();
     });
 
