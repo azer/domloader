@@ -99,6 +99,15 @@ var test_observable = function(test){
   o.getEmitter('foobar')(1,2,3,4);
 }
 
+var test_dir = function(test){
+  compare( domloader.dir('foo/bar/baz.qux'), 'foo/bar' );
+  compare( domloader.dir('../foo/bar/baz.qux'), '../foo/bar' );
+  compare( domloader.dir('./foo/bar/baz.qux'), './foo/bar' );
+  compare( domloader.dir('http://quux.com/foo/bar/baz.qux'), 'http://quux.com/foo/bar' );
+  compare( domloader.dir('foo.bar'), '')
+  test.callback();
+}
+
 var test_ind_load = function(test){
 
   var FDp = function(){

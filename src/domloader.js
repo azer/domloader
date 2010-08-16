@@ -29,7 +29,7 @@
    * Extract directory path from passed uri/url
    */
   var dir = exports.dir = function(path){
-    return path.replace(/\/[^\/]+$/,"");
+    return path.replace(/\/?[^\/]+$/,"");
   }
 
   /**
