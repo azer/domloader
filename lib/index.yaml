@@ -1,0 +1,5 @@
+dependencies:
+  - debug.js
+  - utils.js
+  - observable.js
+  - request.js

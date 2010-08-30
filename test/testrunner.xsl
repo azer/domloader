@@ -47,8 +47,7 @@
               progress(0);
             }
 
-            var fetch = exports.fetch = function(url,callback)
-            {
+            var fetch = exports.fetch = function(url,callback){
               var req = typeof XMLHttpRequest != 'undefined' && new XMLHttpRequest || (function(){
                 try { return new ActiveXObject("Msxml2.XMLHTTP.6.0"); }
                   catch (e) {}
@@ -179,41 +178,66 @@
             };
 
             var run = exports.run = function(callback){
-              log('');
               var container = put('<div style="clear:both"></div>','testrunner-result');
               var statusline = container.childNodes[0];
-              var time = 0;  
+              var time = 0; 
               var uncompleted = tests.slice(0);
+
+              var uncompletedWrapper = document.createElement('div'),
+                  completedWrapper = document.createElement('div'),
+                  failedWrapper = document.createElement('div');
+
+              uncompletedWrapper.setAttribute(trident&&'className'||'class','testrunner-tests-wrapper');
+              completedWrapper.setAttribute(trident&&'className'||'class','testrunner-tests-wrapper');
+              failedWrapper.setAttribute(trident&&'className'||'class','testrunner-tests-wrapper');
+
+              uncompletedWrapper.innerHTML = '<div style="clear:both"></div>';
+              completedWrapper.innerHTML = '<div style="clear:both"></div>';
+              failedWrapper.innerHTML = '<div style="clear:both"></div>';
+
+              container.insertBefore( uncompletedWrapper, container.lastChild );
+              container.insertBefore( completedWrapper, container.lastChild );
+              container.insertBefore( failedWrapper, container.lastChild );
 
               progress(0);
 
               for(var i=-1,len=tests.length; ++i<len;){
                 status('Running tests('+(len-uncompleted.length)+','+len+')');
+
+                var el = document.createElement('ul');
+                el.setAttribute(trident&&'className'||'class','testrunner-case testrunner-waiting');
+                el.innerHTML+='<li class="testrunner-case-header"><label>Case:</label>'+(tests[i].name||tests[i].fname)+'</li>';
+
+                uncompletedWrapper.insertBefore( el, uncompletedWrapper.lastChild );
                 
-                test(tests[i],function(result){
-                  status('Running tests('+(len-uncompleted.length+1)+','+len+')');
-                  var ind = index(uncompleted,result.test); 
-                  if( ind == -1 ) return;
-                  uncompleted = remove(uncompleted,ind);
-                  var diff = ((result.timeEnd-result.timeStart)/1000);
-                  time+=diff;
-                  var el = document.createElement('ul');
-                  el.setAttribute(trident&&'className'||'class','testrunner-case'+(result.error&&' testrunner-error'||''));
-                  el.innerHTML+='<li class="testrunner-case-header"><label>Case:</label>'+(result.test.name||result.test.fname)+'</li>';
-                  el.innerHTML+='<li class="testrunner-case-header"><label>Time:</label>'+diff+'sec</li>';
-                  if(result.error){
-                    for(var name in result.error){
-                      el.innerHTML+='<li><label>'+name+':</label>'+result.error[name]+'</li>';
+                test(tests[i],(function(el){
+                  return function(result){
+                    status('Running tests('+(len-uncompleted.length+1)+','+len+')');
+                    var ind = index(uncompleted,result.test); 
+                    if( ind == -1 ) return;
+                    uncompleted = remove(uncompleted,ind);
+                    var diff = ((result.timeEnd-result.timeStart)/1000);
+                    time+=diff;
+                    el.setAttribute(trident&&'className'||'class','testrunner-case'+(result.error&&' testrunner-error'||' testrunner-success'));
+                    el.innerHTML+='<li class="testrunner-case-header"><label>Time:</label>'+diff+'sec</li>';
+                    if(result.error){
+                      for(var name in result.error){
+                        el.innerHTML+='<li><label>'+name+':</label>'+result.error[name]+'</li>';
+                      }
+                    }
+
+                    var wrapper = ( result.error && failedWrapper || completedWrapper );
+                    wrapper.insertBefore( el, wrapper.lastChild );
+
+                    progress( (len-uncompleted.length)*100/len );
+                    if( uncompleted.length == 0 ){
+                      status('Ready');
+                      $('info-time').innerHTML=time+'sec';
+                      callback && callback();
                     }
                   }
-                  container.insertBefore( el, container.lastChild );
-                  progress( (len-uncompleted.length)*100/len );
-                  if( uncompleted.length == 0 ){
-                    status('Ready');
-                    $('info-time').innerHTML=time+'sec';
-                    callback && callback();
-                  }
-                });
+                })(el));
+
               }
 
             };
@@ -275,7 +299,7 @@
 
           #testrunner-info { list-style:none; padding:0 0 10px 0; margin:0; }
           #testrunner-info li { display:inline; padding:0 5px 10px 0; color:#111; }
-          #testrunner-info label { color:#666;  }
+          #testrunner-info label { color:#666; }
 
           #testrunner-monitor { padding:10px 20px; font-size:10px; background:#fff; }
 
@@ -283,11 +307,15 @@
           .testrunner-button { display:inline; border:1px outset #ccc; padding:2px 5px; background:#f2f2f2; cursor:pointer; margin-right:2px; }
           .testrunner-button:hover { background:rgb(255,255,175); }
 
+          .testrunner-tests-wrapper { display:block; width:100%; }
+
           .testrunner-result { padding:10px; }
           .testrunner-result-statusline { font-weight:bold;  }
-          .testrunner-case { display:block; float:left; padding:5px; margin:2px; background:#ddffdd; list-style:none; }
+          .testrunner-case { display:block; float:left; padding:5px; margin:2px; background:#eee; list-style:none; }
           .testrunner-case li { white-space:pre; }
-          .testrunner-case li label { font-weight:bold; padding-right:2px; color:#337733; }
+          .testrunner-case li label { font-weight:bold; padding-right:2px; color:#888; }
+          .testrunner-success { background:#ddffdd; }
+          .testrunner-success li label { color:#337733; }
           .testrunner-error .testrunner-case-header { background:#ffdddd;  }
           .testrunner-error { background:#ffcccc; }
           .testrunner-error li label { color:#cc3333; }

@@ -1,0 +1,125 @@
+DOMLoader
+=========
+E. Azer Koçulu <azerkoculu@gmail.com>
+v1.0rc2, July 2010: Initial Documentation.
+
+Overview
+--------
+DOMLoader is a lightweight Javascript library providing handling dependencies
+of web applications. It simply makes Javascript and CSS documents to be easier
+to load by letting developers to index them in JSON or XML documents. 
+
+Getting Started
+---------------
+////
+1. Overview
+2. Getting started
+3. User Guide
+3.a. Getting Started
+3.b. Dependency Objects
+3.b.a. Script
+3.b.b. Stylesheet
+3.b.c. ObjectDp
+3.b.d. Index
+3.b.e. XMLIndex
+3.b.e.a. Document Structure
+3.b.e.b. API
+3.b.f. JSONIndex
+3.b.f.a. Document Structure
+3.b.f.b. API
+4. Development
+5. 
+////
+
+Assume that we have an app called "myapp" containing several DOM widgets
+demanded to be pluggable and isolated from other widgets and the application
+including it. Let's start from coding index of a widget:
+
+    /my_project/widgets/foobar/index.xml
+
+    <widget>
+      <dependencies>
+        <script src="foobar.js" />
+        <stylesheet src="foobar.css" />
+      </dependencies>
+    </widget>
+
+In the example above, I've started defining dependencies by coding a
+wrapper element named "widget". Note that, it's possible to use "index" and
+"application" aliases for wrapper elements as well. Then, we put the
+elements storing source uri's of the dependencies in another element named
+"dependencies". As you guess, script (you can also use "module" alias
+instead) and stylesheet represent javascript and CSS documents
+respectively. Now let's code a web page importing this widget:
+  
+    foobar.html
+    
+    <!DOCTYPE html>
+    <html>
+      <head>
+        <script type="text/javascript" src="domloader.js"></script>
+        <script type="text/javascript">
+          domloader.load('/my_project/widgets/foobar/index.xml',function(){
+            var fb = new FoobarWidget();
+            /* ... */
+          });
+        </script>
+      </head>
+      <body>
+      </body>
+    </html>
+
+It's that simple. Now let's give a try to handle index documents more than
+one, here is another widget definition wrapping the widget I've defined
+above:
+
+  /my_project/widgets/foobar-wrapper/index.xml
+
+  <widget>
+    <dependencies>
+    </dependencies>
+  </widget>
+
+
+The important part of this example is the 4 lines of javascript code second
+script element includes, which are shorthand way of creating and
+configuring new XMLIndex instance:
+
+    var foobarIndex = new domloader.XMLIndex();
+    foobarIndex.src = "/my_project/widgets/foobar/index.xml";
+
+    foobarIndex.callbacks["import"].push(function(){
+      foobarIndex.load();
+    });
+
+    foobarIndex.callbacks["load"].push(function(){
+      var fb = new FoobarWidget();
+      /* ... */
+    });
+
+    foobarIndex.importDocument();
+
+Since my index document is formatted in XML, I've started to import that
+document by creating an instance of XMLIndex class. The alternative way of
+getting instance of index classes is to get the class matched with filename
+extension of the document we're importing. Here is the example:
+
+   var foobarIndex = new domloader.FORMAT_CLS_DICT['xml'];
+
+As I mentioned before, JSON is the other language DOMLoader supports:
+  
+    var foobarIndex = /*
+        new domloader.JSONIndex();
+        new domloader.FORMAT_CLS_DICT['json'];
+        new domloader.FORMAT_CLS_DICT['js'];
+      */
+
+All three lines in the commented part of the example above produce same
+result. As you guess, "load" function uses FORMAT_CLS_DICT object to get
+right instance and it's significant to use the filename extensions mapped in
+this object. In the current version of domloader, FORMAT_CLS_DICT contains
+3 extensions by default: XML, JS and JSON.
+
+
+
+vim: tw=75
