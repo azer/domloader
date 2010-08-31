@@ -27,10 +27,10 @@ var ObjectDp = exports.ObjectDp = function(){
   this.properties = [];
 }
 
-extend( ObjectDp, Dependency );
+lib.extend( ObjectDp, Dependency );
 
 ObjectDp.prototype.refreshState = function(){
-  var nres = resolveNSPath( this.name ), loaded = nres.childrenNames.length == 0;
+  var nres = lib.resolveNSPath( this.name ), loaded = nres.childrenNames.length == 0;
   for(var i = -1, len=this.properties.length; ++i < len && loaded;){
     var prop = this.properties[i];
     loaded = nres.parentObject.hasOwnProperty(prop.name) && ( !prop.match || prop.match.test(nres.parentObject[prop.name]) );
@@ -44,7 +44,7 @@ ObjectDp.prototype.load = function(){
   var loadEmitter = this.getEmitter('load'), errorEmitter = this.getEmitter('error');
 
   if( this.state != LOAD ){
-    includeScript(this.src,loadEmitter,errorEmitter);
+    lib.includeScript(this.src,loadEmitter,errorEmitter);
   } else {
     loadEmitter();
   }

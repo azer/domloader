@@ -5,10 +5,10 @@ var Index = exports.Index = function(){
   Dependency.prototype.constructor.call(this);
   this.dependencies = [];
   this.ns = null;
-  this.wd = dir(location.href);
+  this.wd = lib.dir(location.href);
 };
 
-extend( Index, Dependency );
+lib.extend( Index, Dependency );
 
 Index.prototype.load = function(){
   this.state = LOADING;
@@ -28,7 +28,7 @@ Index.prototype.load = function(){
     })(dp));
     dp.callbacks.error.push(errorEmitter);
     try {
-      log('  Loading Dependency',dp.src);
+     log('  Loading Dependency',dp.src);
       dp.load();
     }catch(exc){
       log('  Critical Error:',exc.message);
@@ -44,7 +44,7 @@ Index.prototype.setNS = function(){
   for(var path in this.ns){
     
     log('  NS Path:',path);
-    var res = resolveNSPath(path),
+    var res = lib.resolveNSPath(path),
       parentObject = res.parentObject,
       key = null;
 

@@ -16,66 +16,90 @@ var test_ctxmap = function(test){
 } 
 
 var test_createElement = function(test){
-  var el = domloader.createElement('label');
+  var el = domloader.lib.createElement('label');
   compare( el.tagName, 'LABEL' );
   compare( el.nodeType, 1 );
   test.callback();
 }
 
 var test_dir = function(test){
-  compare( domloader.dir('foo/bar/baz.qux'), 'foo/bar' );
-  compare( domloader.dir('../foo/bar/baz.qux'), '../foo/bar' );
-  compare( domloader.dir('./foo/bar/baz.qux'), './foo/bar' );
-  compare( domloader.dir('http://quux.com/foo/bar/baz.qux'), 'http://quux.com/foo/bar' );
-  compare( domloader.dir('foo.bar'), '')
+  compare( domloader.lib.dir('foo/bar/baz.qux'), 'foo/bar' );
+  compare( domloader.lib.dir('../foo/bar/baz.qux'), '../foo/bar' );
+  compare( domloader.lib.dir('./foo/bar/baz.qux'), './foo/bar' );
+  compare( domloader.lib.dir('http://quux.com/foo/bar/baz.qux'), 'http://quux.com/foo/bar' );
+  compare( domloader.lib.dir('foo.bar'), '')
   test.callback();
 }
 
 var test_includeScript = function(test){
   window["docs/xml/child1/foo.js"] = null;
-  domloader.includeScript("docs/xml/child1/foo.js",function(){
+  domloader.lib.includeScript("docs/xml/child1/foo.js",function(){
     assert( window['docs/xml/child1/foo.js'] );
     test.callback();
   });
 };
 
 var test_isRelativePath = function(test){
-  assert( domloader.isRelativePath('foo/bar') );
-  assert( domloader.isRelativePath('./foo/bar') );
-  assert( domloader.isRelativePath('../foo/bar') );
-  assert( !domloader.isRelativePath('/foo/bar') );
-  assert( !domloader.isRelativePath('http://foo/bar') );
-  assert( !domloader.isRelativePath('https://foo/bar') );
-  assert( !domloader.isRelativePath('ftp://foo/bar') );
+  assert( domloader.lib.isRelativePath('foo/bar') );
+  assert( domloader.lib.isRelativePath('./foo/bar') );
+  assert( domloader.lib.isRelativePath('../foo/bar') );
+  assert( !domloader.lib.isRelativePath('/foo/bar') );
+  assert( !domloader.lib.isRelativePath('http://foo/bar') );
+  assert( !domloader.lib.isRelativePath('https://foo/bar') );
+  assert( !domloader.lib.isRelativePath('ftp://foo/bar') );
   test.callback();
 }
 
 var test_getIndex = function(test){
-  compare( domloader.getIndex([3,4,5],6), -1 );
-  compare( domloader.getIndex([3,4,5],5), 2 );
-  compare( domloader.getIndex([3,4,5],3), 0 );
+  compare( domloader.lib.getIndex([3,4,5],6), -1 );
+  compare( domloader.lib.getIndex([3,4,5],5), 2 );
+  compare( domloader.lib.getIndex([3,4,5],3), 0 );
   test.callback();
 };
 
 var test_partial = function(test){
-  compare( domloader.partial(function(){ return this },[],domloader)(), domloader );
-  compare( domloader.partial(function(){ return arguments[0]+arguments[1] },[17])(23), 40 );
+  compare( domloader.lib.partial(function(){ return this },[],domloader)(), domloader );
+  compare( domloader.lib.partial(function(){ return arguments[0]+arguments[1] },[17])(23), 40 );
   test.callback();
+};
+
+var test_request_load = function(test){
+  var req = new domloader.lib.Request('deps/foo.js');
+  req.callbacks.load.push(function(){
+    test.callback();
+  });
+  req.callbacks.error.push(function(excinfo){
+    test.error = excinfo;
+    test.callback();
+  });
+  req.send();
+};
+
+var test_request_error = function(test){
+  var req = new domloader.lib.Request('non/existing/file');
+  req.callbacks.load.push(function(){
+    test.error = new Error('Request fired load event despiting the load error');
+    test.callback();
+  });
+  req.callbacks.error.push(function(excinfo){
+    test.callback();
+  });
+  req.send();
 };
 
 var test_remove = function(test){
   var l = [17,23,29];
-  compare( domloader.remove(l,1).length, 2 );
-  compare( domloader.remove(l,1)[1], 29 );
-  compare( domloader.remove(l,1)[0], 17 );
+  compare( domloader.lib.remove(l,1).length, 2 );
+  compare( domloader.lib.remove(l,1)[1], 29 );
+  compare( domloader.lib.remove(l,1)[0], 17 );
   test.callback();
 };
 
 var test_resolveNSPath = function(test){
-  compare( domloader.resolveNSPath('domloader.foo.bar').childrenNames.length, 2);
-  compare( domloader.resolveNSPath('domloader.foo.bar').childrenNames[0], 'foo');
-  compare( domloader.resolveNSPath('domloader.foo.bar').childrenNames[1], 'bar');
-  compare( domloader.resolveNSPath('domloader.foo.bar').parentObject, domloader);
+  compare( domloader.lib.resolveNSPath('domloader.foo.bar').childrenNames.length, 2);
+  compare( domloader.lib.resolveNSPath('domloader.foo.bar').childrenNames[0], 'foo');
+  compare( domloader.lib.resolveNSPath('domloader.foo.bar').childrenNames[1], 'bar');
+  compare( domloader.lib.resolveNSPath('domloader.foo.bar').parentObject, domloader);
   test.callback();
 };
 
@@ -97,7 +121,7 @@ var test_loadfn = function(test){
 };
 
 var test_observable = function(test){
-  var o = new domloader.Observable();
+  var o = new domloader.lib.Observable();
   o.callbacks.foobar = [];
   o.callbacks.foobar.push(function(a,r,g,s){
     for(var i=0;++i<5;)
@@ -127,7 +151,7 @@ var test_index = function(test){
 
 var test_index_load = function(test){
   var _dp = function(){ domloader.Dependency.prototype.constructor.call( this ); };
-  domloader.extend( _dp, domloader.Dependency );
+  domloader.lib.extend( _dp, domloader.Dependency );
   _dp.prototype.load = function(){ this.getEmitter('load')(); };
 
   var ind = new domloader.Index();
@@ -502,30 +526,6 @@ var test_objectdp_state = function(test){
   compare( odp.state, domloader.LOAD );
 
   test.callback();
-};
-
-var test_request_load = function(test){
-  var req = new domloader.Request('deps/foo.js');
-  req.callbacks.load.push(function(){
-    test.callback();
-  });
-  req.callbacks.error.push(function(excinfo){
-    test.error = excinfo;
-    test.callback();
-  });
-  req.send();
-};
-
-var test_request_error = function(test){
-  var req = new domloader.Request('non/existing/file');
-  req.callbacks.load.push(function(){
-    test.error = new Error('Request fired load event despiting the load error');
-    test.callback();
-  });
-  req.callbacks.error.push(function(excinfo){
-    test.callback();
-  });
-  req.send();
 };
 
 var test_json = function(){

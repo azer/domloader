@@ -50,8 +50,11 @@ class Dependency:
     self._workingDir_ = path
   
   def read(self):
-    with open('%s%s'%(self.working_dir and self.working_dir+'/' or '',self.src)) as fl:
-      return fl.read()
+    try:
+      with open('%s%s'%(self.index and self.index.working_dir+'/' or '',self.src)) as fl:
+        return fl.read()
+    except:
+      set_trace()
 
 class Index(Dependency):
   def __new__(cls,src,*args,**kwargs):
@@ -71,9 +74,8 @@ class Index(Dependency):
 
   @property
   def content(self):
-    content = ''.join( map( lambda dep: dep.content, self.dependencies) )
+    content = '\n'.join( map( lambda dep: dep.content, self.dependencies) )
 
-    print(self.get_config('replacements'))
     for rpl in self.get_config('replacements',[]):
       content = re.sub(rpl['pattern'],rpl['replacement']%self.get_config('dict',{}),content,flags=re.DOTALL)
 
@@ -113,10 +115,9 @@ class Index(Dependency):
   def parse(self,content):
     raise Exception('Not Implemented')
 
-  def put(content):
-    with open('%s'%self.filename%self.get_config('dict',{}),'w') as fl:
-      fl.write(content)
-    return content
+  def put(self):
+    with open('%s'%self.get_config('filename')%self.get_config('dict',{}),'w') as fl:
+      fl.write(self.content)
 
 TYPE_MAP['index'] = Index
 TYPE_MAP['widget'] = Index
@@ -146,5 +147,4 @@ if __name__ == '__main__' and len(args)>1:
   src = args[1]
   ind = YAMLIndex(src)
   ind.working_dir = dirname(__file__) 
-  ind.content
-  #print(ind.content)
+  ind.put()

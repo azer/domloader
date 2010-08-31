@@ -2,7 +2,7 @@
  * Generic DOM dependency class
  */
 var Dependency = exports.Dependency = function(){
-  Observable.prototype.constructor.call(this);
+  lib.Observable.prototype.constructor.call(this);
   this.cacheForce = debug;
   this.callbacks.error = [];
   this.callbacks.load = [];
@@ -18,7 +18,7 @@ var Dependency = exports.Dependency = function(){
   });
 };
 
-extend(Dependency,Observable);
+lib.extend(Dependency,lib.Observable);
 
 Dependency.prototype.load = function(){
   throw new Error('Not Implemented');

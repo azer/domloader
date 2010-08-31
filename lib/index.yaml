@@ -1,5 +1,15 @@
+replacements:
+  - pattern: \n
+    replacement: '\n  '
+  - pattern: (^.*$)
+    replacement: >
+      var lib = exports.lib = (function(){
+        var exports = {};
+        \1
+        return exports;
+      })();
+
 dependencies:
-  - debug.js
   - utils.js
   - observable.js
   - request.js

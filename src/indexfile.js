@@ -24,7 +24,7 @@ var IndexFile = exports.IndexFile = function(){
   this.src = null;
 };
 
-extend( IndexFile, Index );
+lib.extend( IndexFile, Index );
 
 IndexFile.prototype.importContent = function(content){
   this.ns = content['namespace'];

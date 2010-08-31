@@ -3,12 +3,8 @@ replacements:
     replacement: '\n  '
   - pattern: (^.*$)
     replacement: >
-      var ext = exports.ext = (function(){
+      var json = exports.json = (function(){
         var exports = {};
         \1
         return exports;
       })();
-
-dependencies:
-  - json/index.yaml
-  - xml/index.yaml

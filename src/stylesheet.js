@@ -12,7 +12,7 @@ var Stylesheet = exports.Stylesheet = function(){
   this.src = null;
 }
 
-extend( Stylesheet, Dependency );
+lib.extend( Stylesheet, Dependency );
 
 Stylesheet.prototype.load = function(){
   var el = createElement('link');

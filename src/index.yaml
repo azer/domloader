@@ -1,5 +1,6 @@
 dependencies:
   - intro.js
+  - debug.js
   - states.js
   - ctxmap.js
   - load.js

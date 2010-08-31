@@ -3,14 +3,32 @@ filename: domloader%(vno)s%(vstage)s%(vbuild)s.js
 dict: 
   vno: 1.0 # Version Number
   vstage: rc # Version Stage
-  vbuild: 8  # Build Number
+  vbuild: 9  # Build Number
   debug: 'false' # Debug Mode
+  author: Azer Koçulu
+  email: azerkoculu@gmail.com
+  website: http://github.com/azer/domloader
 
 replacements:
-  - pattern: '(?<=exports\.debug = )[\w]+'
-    replacement: '%(debug)s'
+  - pattern: \n
+    replacement: '\n   '
+  - pattern: (^.*$)
+    replacement: >
+      /**
+       * DOMLoader
+       * Version: %(vno)s%(vstage)s%(vbuild)s
+       * Author: %(author)s <%(email)s>
+       * Website: %(website)s
+       */ 
+       (function(exports,globals,dom,undefined){
+         \1  
+       })( this.domloader = {}, this, this.document );
   - pattern: '(?<=exports\.version = )["\w\.]*'
     replacement: '"%(vno)s%(vstage)s%(vbuild)d"'
+#  - pattern: '(?<=exports\.debug = )[\w]+'
+#    replacement: '%(debug)s'
 
-files:
-  - ../src/domloader.js
+dependencies:
+  - ../lib/index.yaml
+  - ../src/index.yaml
+  - ../ext/index.yaml

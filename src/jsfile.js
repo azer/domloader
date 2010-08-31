@@ -12,9 +12,9 @@ var JSFile = exports.JSFile = function(){
   this.src = null;
 }
 
-extend( JSFile, Dependency );
+lib.extend( JSFile, Dependency );
 
 JSFile.prototype.load = function(){
-  includeScript( this.src, this.getEmitter('load'), this.getEmitter('error') );
+  lib.includeScript( this.src, this.getEmitter('load'), this.getEmitter('error') );
 }
 
