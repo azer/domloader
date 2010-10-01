@@ -5,7 +5,7 @@
  * To emit events and solve the scope problem being encountered during observation chaining in a simple way, Observable objects also have getEmitter method 
  * returning a function calling subscribers asynchronously for specified subject.
  */
-var Observable = exports.Observable = function(){
+var Observable = exports.Observable = function Observable(){
   this.callbacks = {}; 
 };  
 

@@ -1,7 +1,8 @@
 /**
  * State Objects
  */
-var UNINITIALIZED = exports.UNINITIALIZED = new Object(-1),
-    LOADING = exports.LOADING = new Object(0),
-    LOAD = exports.LOAD = new Object(1),
-    ERROR = exports.ERROR = new Object(3);
+var names = ["UNINITIALIZED", "LOADING", "LOAD", "ERROR"];
+
+for(var i = -1, len=names.length; ++i < len; ) {
+  exports[names[i]] = new Object(i);
+};

@@ -1,0 +1,21 @@
+{
+  "_dict_":{
+    "name":"domloader",
+    "vno":"1.0",
+    "vstage":"rc",
+    "buildno":"9"
+  },
+  "name":"%(name)s",
+  "version":"%(vno)s",
+  "description":"Asynchronous dependency injection mechanism for web",
+  "build":{
+    "dir":"../../src",
+    "filename":"../%(name)s-v%(vno)s%(vstage)s%(buildno)s.js",
+    "main":"domloader.js",
+    "files":[
+      "../build/manifests/libraries.json",
+      "*.js",
+      "../build/manifests/extensions.json"
+    ]
+  }
+}

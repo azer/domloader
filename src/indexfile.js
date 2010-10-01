@@ -1,42 +1,54 @@
-var createIndexFile = exports.createIndexFile = ctxmap.dependencyTypes.index = ctxmap.dependencyTypes.widget = ctxmap.dependencyTypes.application = function(content,index){
-  var src = content['src'], src_ext = null;
+var Index = require('./index').Index,
+    Request = require('./libs/request').Request,
+    getFileNameExt = require('./libs/utils').getFileNameExt,
+    maps = require('./maps'),
+    utils = require("./libs/utils"),
+    logger = require('./libs/logger');
 
-  if( src && ( src_ext = src.match(/\.(\w+)(?:\?[\w\=\,\.\&\%\:]+)?|(?:\#.*)?$/) ) )
-    format = src_ext[1];
+var create = exports.create = function create(content,index){
+  var src = content['src'];
+  logger.debug('Creating new IndexFile instance for the file at src:"'+src+'"');
+  var ind = maps.getConstructorByFormat(src).apply(null,arguments);
+  ind.wd = utils.dir(src);
+  logger.info('  Set WD as '+ind.wd)
+  return ind;
+};
 
-  if( !ctxmap.indexTypes.hasOwnProperty( format ) )
-    throw new Error('Unsupported index format: '+format);
-
-  index && isRelativePath(src) && ( src = index.wd + '/' + src );
-
-  var dp = new ctxmap.indexTypes[format];
-  dp.src = src;
-  dp.wd = dir(src);
-  return dp;
-}
+maps.types.widget = maps.types.application = maps.types.index = create;
 
 /**
  * Represents an external document containing dependency information
  */
-var IndexFile = exports.IndexFile = function(){
+var IndexFile = exports.IndexFile = function IndexFile(){
   Index.prototype.constructor.call(this);
-
+  this.content = null;
   this.src = null;
+  this.callbacks.importFileContent = [];
+  this.callbacks.loadFile = [];
 };
 
-lib.extend( IndexFile, Index );
+utils.extend( IndexFile, Index );
 
-IndexFile.prototype.importContent = function(content){
-  this.ns = content['namespace'];
-  for(var i = -1, len=content.dependencies.length; ++i < len; ){
-    var dpinf = content.dependencies[i],
-        constructor = ctxmap.dependencyTypes[dpinf['type']];
+IndexFile.prototype.loadFile = function(){
+  logger.debug('Loading index file "'+this.src+'"');
+  var req = new Request(this.src);
+  req.callbacks.load.push( this.getEmitter('loadFile') );
+  req.callbacks.error.push( this.getEmitter('error') );
+  req.send();
+  return req;
+}
 
-    if(!constructor){
-      throw new Error('Unknown Dependency Type:'+dpinf['type']);
-    }
+IndexFile.prototype.importFileContent = function(){
+  logger.debug('Importing content of IndexFile instance, "'+this.src+'"');
+  this.ns = this.content['namespace'];
+  for(var i = -1, len=this.content.dependencies.length; ++i < len; ){
+    var el = this.content.dependencies[i];
+    typeof el == 'string' && (el = { "src":el });
+    constructor = el.hasOwnProperty('type') && maps.getConstructorByType(el['type']) || maps.getConstructorByFormat(el['src']);
 
-    this.dependencies.push( constructor(dpinf) );
+    utils.isRelativePath(el['src']) && this.wd && ( el['src'] = this.wd + '/' + el['src'] );
+
+    this.dependencies.push( constructor(el,this) );
   };
 
   this.getEmitter('importFileContent')();

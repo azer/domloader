@@ -100,7 +100,7 @@
               scripts.push( $('info-file').getAttribute('data-path') );
 
               each( $('info-file').getAttribute('data-dependencies').split('|'), function(el){
-                /[^\s]+/.test(el) && scripts.push(el);
+                /[^\s]+/.test(el) && scripts.push(el.replace(/^\s+/,''));
               });
 
               load(scripts,set);
@@ -137,7 +137,7 @@
                 var url = scripts[i]+"?"+String(Number(new Date())).substring(5);
                 var script = document.createElement('script');
                 script.type = 'text/javascript';
-                script.async = "true";
+                //script.async = "true";
                 script.src = url;
                 script.onload = script.onreadystatechange = function(){
                   var path = this.getAttribute('src').replace(/\?\d{8}$/,""), readystate = this.readyState;

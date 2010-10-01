@@ -1,10 +1,14 @@
+var Observable = require('./observable').Observable,
+    extend = require('./utils').extend,
+    logger = require("./logger");
+
 /**
  * An observable&cross browser wrapper of XMLHttpRequest class
  */
-var Request = exports.Request = function(url){
+var Request = exports.Request = function Request(url){
   Observable.prototype.constructor.call( this );
 
-  log('Initializing new HTTP request to',url);
+  logger.debug('Initializing new HTTP request to',url);
   
   this.callbacks.load = [];
   this.callbacks.error = [];
@@ -23,7 +27,7 @@ var Request = exports.Request = function(url){
   var errorEmitter = this.getEmitter('error');
   req.open('GET',url,true);
   req.onreadystatechange = function(){
-    log( '  Request state has changed', 'url:', url, 'readyState:', req.readyState );
+    logger.info( '  Request state has changed', '(:url', url, ':readyState', req.readyState + ')' );
     req.readyState == 4 && ( req.status == 200 ? loadEmitter(req) : errorEmitter(new Error("Could not load "+url+", readystate:"+req.readyState+" status:"+req.status)) );
   };
 };
