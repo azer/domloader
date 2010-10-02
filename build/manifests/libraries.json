@@ -1,0 +1,14 @@
+{
+  "_dict_":{
+    "name":"domloader-libraries",
+    "vno":"1.0"
+  },
+  "name":"%(name)s",
+  "version":"%(vno)s",
+  "build":{
+    "dir":"../../src/libs",
+    "files":[
+      "*.js"
+    ]
+  }
+}
