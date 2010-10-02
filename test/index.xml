@@ -14,5 +14,5 @@
   <dependency path='tests/jsfile.js' />
   <dependency path='tests/objectdp.js' />
   <dependency path='tests/jsonindex.js' />
-  <dependency path='tests/xmlindex.js' />
+  <dependency path='tests/xmlindex.js' /> 
 </test>

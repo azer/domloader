@@ -367,6 +367,8 @@ Index.prototype.load = function(){
   logger.debug('Loading Index','src:',this.src);
 
   var unloaded = this.dependencies.slice(0), self = this, loadEmitter = this.getEmitter('load'), errorEmitter = this.getEmitter('error');
+
+  logger.debug(unloaded);
   for(var i = -1, len=this.dependencies.length; ++i < len; ){
     var dp = this.dependencies[i];
     dp.callbacks.load.push((function(dp){
@@ -414,7 +416,7 @@ Index.prototype.setNS = function(){
 });
 
 domloader._jsbuild_.defineModule("domloader.js",function(exports,module,require,globals,undefined){
- var config = require('config'),
+ var config = require('./config'),
     createIndexFile = require("./indexfile").create,
     partial = require("./libs/utils").partial,
     dir = require('./libs/utils').dir;
@@ -426,17 +428,9 @@ domloader.version = config.version;
  */
 var load = exports.load = globals.domloader.load = function load(src,callback,errback){
   var ind = createIndexFile({ 'src':src });
-
-  ind.callbacks["parseFile"].push(partial(ind.importFileContent,[],ind));
-  ind.callbacks["importFileContent"].push(partial(ind.setNS,[],ind),partial(ind.load,[],ind));
-
-  ind.src = src;
-  ind.wd = dir( ind.src );
   callback && ind.callbacks.load.push(callback);
   errback && ind.callbacks.error.push(errback);
-
-  ind.loadFile();
-
+  ind.load();
   return ind;
 };
  
@@ -468,20 +462,10 @@ var IndexFile = exports.IndexFile = function IndexFile(){
   Index.prototype.constructor.call(this);
   this.content = null;
   this.src = null;
-  this.callbacks.importFileContent = [];
   this.callbacks.loadFile = [];
 };
 
 utils.extend( IndexFile, Index );
-
-IndexFile.prototype.loadFile = function(){
-  logger.debug('Loading index file "'+this.src+'"');
-  var req = new Request(this.src);
-  req.callbacks.load.push( this.getEmitter('loadFile') );
-  req.callbacks.error.push( this.getEmitter('error') );
-  req.send();
-  return req;
-}
 
 IndexFile.prototype.importFileContent = function(){
   logger.debug('Importing content of IndexFile instance, "'+this.src+'"');
@@ -495,9 +479,30 @@ IndexFile.prototype.importFileContent = function(){
 
     this.dependencies.push( constructor(el,this) );
   };
-
-  this.getEmitter('importFileContent')();
 };
+
+IndexFile.prototype.load = function(){
+  this.callbacks.loadFile.push(utils.partial(function(req){
+    this.parseFile(req);
+    this.importFileContent();
+    this.setNS();
+    Index.prototype.load.call(this);
+  },[],this));
+  this.loadFile();
+}
+
+IndexFile.prototype.loadFile = function(){
+  logger.debug('Loading index file "'+this.src+'"');
+  var req = new Request(this.src);
+  req.callbacks.load.push( this.getEmitter('loadFile') );
+  req.callbacks.error.push( this.getEmitter('error') );
+  req.send();
+  return req;
+}
+
+IndexFile.prototype.parseFile = function(req){
+  this.content = req.responseText;
+}
  
 });
 
@@ -778,22 +783,14 @@ maps.formats.json = create;
 
 var JSONIndex = exports.JSONIndex = function JSONIndex(){
   IndexFile.prototype.constructor.call( this );
-  
-  this.callbacks.parseFile = [];
-
-  this.callbacks.loadFile.push(partial(function(req){
-    logger.info('Loaded index document at "'+this.src+'"');
-    try {
-      this.content = parse( req.responseText );
-      this.getEmitter('parseFile')();
-    } catch(excinfo){
-      logging.error(excinfo);
-      this.getEmitter('error')(excinfo);
-    }
-  },[],this));
 };
 
 extend( JSONIndex, IndexFile );
+
+JSONIndex.prototype.parseFile = function(req){
+  logger.debug('Trying to parse the file at "'+this.src+'" to JS objects');
+  this.content = parse( req.responseText );
+}
  
 });
 
@@ -846,7 +843,6 @@ domloader._jsbuild_.defineModule("ext/xml/xmlindex.js",function(exports,module,r
 
 var create = exports.create = function create(content,index){
   var src = content['src'];
-  index && isRelativePath(src) && ( src = index.wd + '/' + src );
 
   logger.debug('Creating new XMLIndex instance, filename:'+src);
 
@@ -860,78 +856,70 @@ maps.formats.xml = create;
 
 var XMLIndex = exports.XMLIndex = function(){
   IndexFile.prototype.constructor.call( this );
-  
-  this.callbacks.parseFile = [];
-
-  this.callbacks.loadFile.push(partial(function(req){
-    logger.info('Load the index file at "'+this.src+'"');
-    try {
-      var ctx = req.responseXML,
-          select = queryNode(ctx),
-          deps = [],
-          depElements = select('/dependencies/*'),
-          name = ctx.documentElement.getAttribute('name'),
-          version = ctx.documentElement.getAttribute('version'),
-          ns = null,
-          nsElements = select('/namespace'),
-          nsContent = null;
-        
-      if(nsElements.length){
-        logger.info('Namespace definition(s) found.');
-        nsContent = nsElements[0].childNodes[0].nodeValue;
-        !/^\{/.test( nsContent ) && ( nsContent = "{"+nsContent+"}" );
-        logger.debug('  Parsing JSON NS definition: '+nsContent);
-        ns = parseJSON( nsContent );
-        logger.info('  Done. Resullt:',ns)
-      }
-
-      this.content = {
-        'namespace':ns,
-        'dependencies':deps
-      };
-
-      name && ( this.content['name'] = name );
-      version && ( this.content['version'] = version );
-
-      for(var i = -1, len=depElements.length; ++i < len; ){
-        var dp = { "type":null, "src":null },
-            el = depElements[i];
-
-        dp['type'] = el.tagName;
-        dp['src'] = el.getAttribute('src');
-
-        logger.debug('Parsing Dependency Element (:type "'+el.tagName+'" :src "'+el.getAttribute('src')+'")');
-
-        switch(dp['type']){
-          case 'object':
-            dp['name'] = el.getAttribute('name');
-            dp['properties'] = [];
-
-            var properties = el.getElementsByTagName('property');
-            for(var t = -1, tlen=properties.length; ++t < tlen; ){
-              var el = properties[t];
-              var prop = {};
-              prop.name = el.getAttribute("name");
-              el.getAttribute("match") && ( prop.match = new RegExp(el.getAttribute("match")) );
-              dp.properties.push(prop);
-            };
-            break;
-        }
-
-        deps.push(dp);
-
-      };
-
-      this.getEmitter('parseFile')();
-    } catch(excinfo) {
-      logger.critical(excinfo);
-      this.getEmitter('error')(excinfo);
-    }
-  },[],this));
-  
 }
 
 extend( XMLIndex, IndexFile );
+
+XMLIndex.prototype.parseFile = function(req){
+  logger.debug('Trying to parse the file at "'+this.src+'" to JS objects');
+
+  var ctx = req.responseXML,
+      select = queryNode(ctx),
+      deps = [],
+      depElements = select('/dependencies/*'),
+      name = ctx.documentElement.getAttribute('name'),
+      version = ctx.documentElement.getAttribute('version'),
+      ns = null,
+      nsElements = select('/namespace'),
+      nsContent = null;
+    
+  if(nsElements.length){
+    logger.info('  Namespace definition(s) found.');
+    nsContent = nsElements[0].childNodes[0].nodeValue;
+        !/^\{/.test( nsContent ) && ( nsContent = "{"+nsContent+"}" );
+    logger.debug('    Parsing JSON NS definition: '+nsContent);
+    ns = parseJSON( nsContent );
+    logger.info('    Done:',ns)
+  }
+
+  this.content = {
+    'namespace':ns,
+    'dependencies':deps
+  };
+
+  name && ( this.content['name'] = name );
+  version && ( this.content['version'] = version );
+
+  for(var i = -1, len=depElements.length; ++i < len; ){
+    var dp = { "type":null, "src":null },
+        el = depElements[i];
+
+    dp['type'] = el.tagName;
+    dp['src'] = el.getAttribute('src');
+
+    logger.debug('  Parsing Dependency Element (:type "'+el.tagName+'" :src "'+el.getAttribute('src')+'")');
+
+    switch(dp['type']){
+      case 'object':
+        logging.info('  Found object element, parsing its properties.');
+        dp['name'] = el.getAttribute('name');
+        dp['properties'] = [];
+
+        var properties = el.getElementsByTagName('property');
+        for(var t = -1, tlen=properties.length; ++t < tlen; ){
+          var el = properties[t];
+          var prop = {};
+          prop.name = el.getAttribute("name");
+          el.getAttribute("match") && ( prop.match = new RegExp(el.getAttribute("match")) );
+          dp.properties.push(prop);
+        };
+        break;
+    }
+
+    deps.push(dp);
+
+  };
+}
  
 });
 

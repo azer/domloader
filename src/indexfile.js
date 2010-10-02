@@ -23,20 +23,10 @@ var IndexFile = exports.IndexFile = function IndexFile(){
   Index.prototype.constructor.call(this);
   this.content = null;
   this.src = null;
-  this.callbacks.importFileContent = [];
   this.callbacks.loadFile = [];
 };
 
 utils.extend( IndexFile, Index );
-
-IndexFile.prototype.loadFile = function(){
-  logger.debug('Loading index file "'+this.src+'"');
-  var req = new Request(this.src);
-  req.callbacks.load.push( this.getEmitter('loadFile') );
-  req.callbacks.error.push( this.getEmitter('error') );
-  req.send();
-  return req;
-}
 
 IndexFile.prototype.importFileContent = function(){
   logger.debug('Importing content of IndexFile instance, "'+this.src+'"');
@@ -50,6 +40,27 @@ IndexFile.prototype.importFileContent = function(){
 
     this.dependencies.push( constructor(el,this) );
   };
-
-  this.getEmitter('importFileContent')();
 };
+
+IndexFile.prototype.load = function(){
+  this.callbacks.loadFile.push(utils.partial(function(req){
+    this.parseFile(req);
+    this.importFileContent();
+    this.setNS();
+    Index.prototype.load.call(this);
+  },[],this));
+  this.loadFile();
+}
+
+IndexFile.prototype.loadFile = function(){
+  logger.debug('Loading index file "'+this.src+'"');
+  var req = new Request(this.src);
+  req.callbacks.load.push( this.getEmitter('loadFile') );
+  req.callbacks.error.push( this.getEmitter('error') );
+  req.send();
+  return req;
+}
+
+IndexFile.prototype.parseFile = function(req){
+  this.content = req.responseText;
+}

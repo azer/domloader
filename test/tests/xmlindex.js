@@ -7,19 +7,20 @@ var test_xmlindex = function(test){
   assert( xmlind.dependencies );
   assert( xmlind.loadFile );
   assert( xmlind.importFileContent );
-  compare( xmlind.callbacks.loadFile.length, 1);
-  compare( xmlind.callbacks.importFileContent.length, 0);
+  compare( xmlind.callbacks.loadFile.length, 0);
   test.callback();
 };
 
 var test_xmlindex_parse = function(test){
-  var jind = new xmlindex.XMLIndex();
-  jind.src = 'docs/xml/child1/index.xml';
+  var xmlind = new xmlindex.XMLIndex();
+  xmlind.src = 'docs/xml/child1/index.xml';
 
-  jind.callbacks["loadFile"].push(domloader.require('./libs/utils').partial(jind.importFileContent,[],jind));
-  jind.callbacks["parseFile"].push(function(){
+  xmlind.callbacks["loadFile"].push(function(req){
     try {
-      var content = jind.content;
+      xmlind.parseFile(req);
+      xmlind.importFileContent();
+
+      var content = xmlind.content;
       compare( content['name'], 'Child1' );
       compare( content['version'], '1.0' );
       assert( content['namespace']['child1_ns'] )
@@ -36,10 +37,10 @@ var test_xmlindex_parse = function(test){
     test.callback();
   });
 
-  jind.callbacks['error'].push(function(err){
+  xmlind.callbacks['error'].push(function(err){
     test.error = err;
     test.callback();
   });
 
-  jind.loadFile();
+  xmlind.loadFile();
 };

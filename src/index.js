@@ -27,6 +27,8 @@ Index.prototype.load = function(){
   logger.debug('Loading Index','src:',this.src);
 
   var unloaded = this.dependencies.slice(0), self = this, loadEmitter = this.getEmitter('load'), errorEmitter = this.getEmitter('error');
+
+  logger.debug(unloaded);
   for(var i = -1, len=this.dependencies.length; ++i < len; ){
     var dp = this.dependencies[i];
     dp.callbacks.load.push((function(dp){

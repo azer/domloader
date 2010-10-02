@@ -14,21 +14,20 @@ var test_jsonindex = function(test){
   assert( jind.dependencies );
   assert( jind.loadFile );
   assert( jind.importFileContent );
-  compare( jind.callbacks.loadFile.length, 1);
-  compare( jind.callbacks.parseFile.length, 0);
-  compare( jind.callbacks.importFileContent.length, 0);
+  compare( jind.callbacks.loadFile.length, 0);
   test.callback();
 };
 
 var test_jsonindex_parse = function(test){
-  
   var jind = new jsonindex.JSONIndex();
   jind.src = 'docs/json/child1/index.json';
   jind.wd = '';
 
-  jind.callbacks["loadFile"].push(domloader.require('./libs/utils').partial(jind.importFileContent,[],jind));
-  jind.callbacks["parseFile"].push(function(){
+  jind.callbacks["loadFile"].push(function(req){
     try {
+      jind.parseFile(req);
+      jind.importFileContent();
+      
       var content = jind.content;
       compare( content['name'], 'Child1' );
       compare( content['version'], '1.0' );
