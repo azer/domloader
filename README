@@ -1,0 +1,4 @@
+DOMLoader is a new Javascript library that provides an asynchronous dependency
+injection mechanism for web projects.  Currently, its documentation is not
+ready but there is a blog post giving examples about its basic usage:
+http://io.kodfabrik.com/2010/08/08/domloader.html
