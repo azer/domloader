@@ -15,3 +15,15 @@ var load = exports.load = globals.domloader.load = function load(src,callback,er
   ind.load();
   return ind;
 };
+
+/**
+ * Provide manual dependency check.
+ */
+globals.domloader.loadObject = function loadObject(obj, src, callback, errback) {
+  if ('undefined' === typeof obj) {
+    load(src, callback, errback);
+  }
+  else {
+    callback && callback();
+  }
+};
