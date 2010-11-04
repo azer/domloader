@@ -34,11 +34,11 @@ IndexFile.prototype.importFileContent = function(){
   for(var i = -1, len=this.content.dependencies.length; ++i < len; ){
     var el = this.content.dependencies[i];
     typeof el == 'string' && (el = { "src":el });
-    constructor = el.hasOwnProperty('type') && maps.getConstructorByType(el['type']) || maps.getConstructorByFormat(el['src']);
+    var konstruktor = el.hasOwnProperty('type') && maps.getConstructorByType(el['type']) || maps.getConstructorByFormat(el['src']);
 
     utils.isRelativePath(el['src']) && this.wd && ( el['src'] = this.wd + '/' + el['src'] );
 
-    this.dependencies.push( constructor(el,this) );
+    this.dependencies.push( konstruktor(el,this) );
   };
 };
 
